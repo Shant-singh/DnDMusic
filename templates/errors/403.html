@@ -1,0 +1,6 @@
+<h1> 403 Forbidden </h1>
+{% if error == 'admin_required' %}
+<p> You need higher permissions to access this resource, <a href="{{ url_for('login') }}">login here</a></p>
+{% else %}
+<p> You need to login to access this resource, <a href="{{ url_for('login') }}">login here</a></p>
+{% endif %}

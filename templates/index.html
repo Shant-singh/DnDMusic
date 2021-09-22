@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en-GB"><head>
+    <meta charset="UTF-8">
+
+    <title>D&Deez</title>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&amp;display=swap" as="style" type="text/css" crossorigin="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  </head>
+  <body>
+
+    <div class="content">
+      <div class="games">
+        {% for game in games %}
+          <div><a href="{{ url_for('room', c=game.game_code) }}">{{ game.name }}</a> ({{ game.game_code }})</div>
+        {% endfor %}
+      </div>
+      <div class="entities">
+        {% for entity in entities %}
+          <div><a href="{{ url_for('edit', c=entity.hash) }}">{{ entity.name }}</a> ({{ game.game_code }})</div>
+        {% endfor %}
+      </div>
+    </div>
+  
+</body>
+</html>
