@@ -1,3 +1,36 @@
+function updateImage(type)
+{
+    var preview = document.querySelector('img');
+    var file = document.querySelector('input[type=file]').files[0];
+    var b64 = document.querySelector('input.base64')
+    if (type == 'entityImage')
+    { 
+        preview = document.querySelector('div.entity img.image');
+        file = document.querySelector('input[type=file]#entityImage').files[0];
+        b64 = document.querySelector('input.base64#entityImage')
+    }
+    else if (type == 'entityIcon')
+    {
+        preview = document.querySelector('div.entity img.icon');
+        file = document.querySelector('input[type=file]#entityIcon').files[0];
+        b64 = document.querySelector('input.base64#entityIcon')
+    }
+
+    const reader = new FileReader();
+
+    reader.addEventListener("load", function () {
+      // convert image file to base64 string
+      preview.src = reader.result;
+      console.log(b64.value, reader.result)
+      b64.value = reader.result;
+      console.log(b64.value)
+    }, false);
+
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+}
+
 window.onload = function(){
     // Get the modal
     var modal = document.getElementById("modal");
@@ -19,17 +52,14 @@ window.onload = function(){
     btn_gam.onclick = function() {
         modal.style.display = "block";
         modal.getElementsByClassName("game")[0].style.display = "block";
-        console.log("game");
     }
     btn_ent.onclick = function() {
         modal.style.display = "block";
         modal.getElementsByClassName("entity")[0].style.display = "block";
-        console.log("entity");
     }
     btn_map.onclick = function() {
         modal.style.display = "block";
         modal.getElementsByClassName("map")[0].style.display = "block";
-        console.log("map");
     }
 
     // When the user clicks on <span> (x), close the modal

@@ -36,3 +36,8 @@
     text-decoration: none;
     cursor: pointer;
   }
+
+div.image {
+    width: 100px;
+    height: 100px;
+}
