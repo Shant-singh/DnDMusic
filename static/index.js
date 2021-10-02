@@ -15,15 +15,19 @@ function updateImage(type)
         file = document.querySelector('input[type=file]#entityIcon').files[0];
         b64 = document.querySelector('input.base64#entityIcon')
     }
+    else if (type == 'mapImage')
+    {
+        preview = document.querySelector('div.map img.image');
+        file = document.querySelector('input[type=file]#mapImage').files[0];
+        b64 = document.querySelector('input.base64#mapImage')
+    }
 
     const reader = new FileReader();
 
     reader.addEventListener("load", function () {
       // convert image file to base64 string
       preview.src = reader.result;
-      console.log(b64.value, reader.result)
       b64.value = reader.result;
-      console.log(b64.value)
     }, false);
 
     if (file) {

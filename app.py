@@ -29,8 +29,11 @@ def login_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('id') or not (Users.query.get(session['id']).permissions and 0x1):
-            return abort(403, "admin_required")
+        try:
+            if not session.get('id') or not (Users.query.get(session['id']).permissions and 0x1):
+                return abort(403, "admin_required")
+        except AttributeError: # the user has an invalid session id
+            return redirect(url_for('logout'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -53,7 +56,7 @@ def home():
     games = [Game.query.get(i) for i in game_ids]
     maps = [Map.query.get(i) for i in map_ids]
     entities = [Entity.query.get(i) for i in entity_ids]
-    return render_template('index.html', games=games, maps=maps, entities=entities)
+    return render_template('index.html', user=user, games=games, maps=maps, entities=entities)
 
 @app.route('/room')
 @login_required
@@ -90,7 +93,7 @@ def logout():
 def register():
     if request.method == 'POST':
         if not Users.query.filter_by(username=request.form['uname']).first():
-            db.session.add(Users(username=request.form['uname'], password=generate_password_hash(request.form['psw']), game_ids='[1]', map_ids='[]', entity_ids='[]', permissions=0x1))
+            db.session.add(Users(username=request.form['uname'], password=generate_password_hash(request.form['psw']), game_ids='[]', map_ids='[]', entity_ids='[]', permissions=0x1))
             db.session.commit()
             print(f'Added user {request.form["uname"]} with password {request.form["psw"]}')
             return redirect(url_for('login'), code=303)

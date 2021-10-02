@@ -16,6 +16,7 @@
   <body>
 
     <div class="content">
+      <p style="font-size: 32px;">Logged in as <b>{{ user.username }}</b></p>
       <div class="games">
         {% for game in games %}
           <div><a href="{{ url_for('room', c=game.game_code) }}">{{ game.name }}</a> ({{ game.game_code }})</div>
@@ -25,16 +26,14 @@
       <hr />
       <div class="entities">
         {% for entity in entities %}
-          <div><a href="{{ url_for('edit', c=entity.hash) }}">{{ entity.name }}</a> ({{ entity.hash }}) <img src="{{ entity.bigimageb64 }}" height=200><img height=200 src="{{ entity.iconb64 }}"></div>
+          <div><a href="{{ url_for('edit', c=entity.hash, t=e) }}">{{ entity.name }}</a> ({{ entity.hash }}) <img src="{{ entity.bigimageb64 }}" height=200><img height=200 src="{{ entity.iconb64 }}"></div>
         {% endfor %}
         <button id="create_entity">Create entity</button>
       </div>
       <hr />
       <div class="Maps">
         {% for map in maps %}
-          <div>
-            <p>{{ map.name }}</p>
-          </div>
+          <div><a href="{{ url_for('edit', c=map.hash, t=m) }}">{{ map.name }}</a> ({{ map.hash }}) <img src="{{ map.imageb64 }}" height=200></div>
         {% endfor %}
         <button id="create_map">Create map</button>
       </div>
@@ -81,8 +80,15 @@
         </div>
         <div class="map">
           <form method="post">
-            <label for="uname"><b>Username</b></label>
-            <input type="text" placeholder="Enter Username" name="uname" required>
+            <label for="name"><b>Name: </b></label>
+            <input type="text" placeholder="The name of your map" name="name" maxlength="100" required> <br />
+            
+            <label for="image"><b>Select an image for your map: </b></label>
+            <input type="file" id="mapImage" name="mapImage" onchange="updateImage('mapImage')" accept="image/png, image/jpeg">
+            <input class="base64" id="mapImage" name="mapImageB" hidden>
+            <img class="image" src="" height="200"> <br />
+
+            <button type="submit" name="map">Create</button>
           </form>
         </div>
       </div>

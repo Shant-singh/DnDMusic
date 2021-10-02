@@ -20,7 +20,7 @@ class Entity(db.Model):
     hash = db.Column(db.String(10)) # hash of the name for id purposes
     bigimageb64 = db.Column(db.String(200000))
     iconb64 = db.Column(db.String(200000))
-    size = db.Column(db.String(3)) # binary for the six sizes
+    size = db.Column(db.String(3)) # binary values for the different six sizes
 
 class EntityInstance(db.Model):
     __tablename__ = 'EntityInstance'
@@ -34,9 +34,10 @@ class Map(db.Model):
     __tablename__ = 'Map'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
+    hash = db.Column(db.String(10))
     imageb64 = db.Column(db.String(1000))
-    scale = db.Column(db.Integer)
-    offset = db.Column(db.Integer)
+    scale = db.Column(db.Float)
+    offset = db.Column(db.Float)
     xsize = db.Column(db.Integer)
     ysize = db.Column(db.Integer)
 
@@ -52,11 +53,11 @@ class MapInstance(db.Model):
 class Game(db.Model):
     __tablename__ = 'Game'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True)
+    name = db.Column(db.String(100))
     dm_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
     map_instance_ids = db.Column(db.String(1000)) # list of ids of map instances in this game
     player_ids = db.Column(db.String(10)) # list of ids of players
-    game_code = db.Column(db.String(5))
+    game_code = db.Column(db.String(5), unique=True)
 
 if __name__ == '__main__':
     app = Flask(__name__)
