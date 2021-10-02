@@ -9,6 +9,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#157878">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="{{url_for('static', filename='index.js')}}"></script>
+    <link rel="stylesheet", href="{{url_for('static', filename='index.css')}}">
 
   </head>
   <body>
@@ -18,13 +20,52 @@
         {% for game in games %}
           <div><a href="{{ url_for('room', c=game.game_code) }}">{{ game.name }}</a> ({{ game.game_code }})</div>
         {% endfor %}
+        <button id="create_game">Create game</button>
       </div>
+      <hr />
       <div class="entities">
         {% for entity in entities %}
           <div><a href="{{ url_for('edit', c=entity.hash) }}">{{ entity.name }}</a> ({{ game.game_code }})</div>
         {% endfor %}
+        <button id="create_entity">Create entity</button>
+      </div>
+      <hr />
+      <div class="Maps">
+        {% for map in maps %}
+          <div>
+            <p>{{ map.name }}</p>
+          </div>
+        {% endfor %}
+        <button id="create_map">Create map</button>
       </div>
     </div>
   
+    <div id="modal" class="modal">
+
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="game">
+          <form method="post">
+            <label for="name"><b>Name: </b></label>
+            <input type="text" placeholder="The name of your game" name="name" maxlength="100" required>
+            <button type="submit" name="game">Create</button>
+          </form>
+        </div>
+        <div class="entity">
+          <form method="post">
+            <label for="uname"><b>Username</b></label>
+            <input type="text" placeholder="Enter Username" name="uname" required>
+          </form>
+        </div>
+        <div class="map">
+          <form method="post">
+            <label for="uname"><b>Username</b></label>
+            <input type="text" placeholder="Enter Username" name="uname" required>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
 </body>
 </html>

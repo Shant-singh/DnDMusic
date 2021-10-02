@@ -5,6 +5,9 @@ import logging
 from logging import Formatter, FileHandler
 import os
 from functools import wraps
+import hashlib
+import base64
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -14,19 +17,21 @@ class Users(db.Model):
     username = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     game_ids = db.Column(db.String(100))
-    permissions = db.Column(db.Integer) # ORed permissions 0x1 is admin
+    map_ids = db.Column(db.String(100))
+    entity_ids = db.Column(db.String(100))
+    permissions = db.Column(db.Integer) # ORed permissions, 0x1 is admin
 
 class Entity(db.Model):
     __tablename__ = 'Entity'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     hash = db.Column(db.String(100)) # hash of the name for id purposes
-    visibility = db.Column(db.String(1000))
-    imageb64 = db.Column(db.String(1000))
+    bigimageb64 = db.Column(db.String(1000))
+    iconb64 = db.Column(db.String(1000))
     size = db.Column(db.String(50))
 
-class EntityList(db.Model):
-    __tablename__ = 'EntityList'
+class EntityInstance(db.Model):
+    __tablename__ = 'EntityInstance'
     id = db.Column(db.Integer, primary_key=True)
     entity_id = db.Column(db.Integer, db.ForeignKey('Entity.id'), nullable=False)
     map_id = db.Column(db.Integer, db.ForeignKey('MapInstance.id'), nullable=False)
@@ -37,7 +42,6 @@ class Map(db.Model):
     __tablename__ = 'Map'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
-    visibility = db.Column(db.String(1000))
     imageb64 = db.Column(db.String(1000))
     scale = db.Column(db.Integer)
     offset = db.Column(db.Integer)
@@ -56,12 +60,11 @@ class MapInstance(db.Model):
 class Game(db.Model):
     __tablename__ = 'Game'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    visibility = db.Column(db.String(1000))
+    name = db.Column(db.String(100), unique=True)
     dm_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
-    map_ids = db.Column(db.String(1000)) # list of ids of map instances in this game
+    map_instance_ids = db.Column(db.String(1000)) # list of ids of map instances in this game
     player_ids = db.Column(db.String(10)) # list of ids of players
-    game_code = db.Column(db.String(20))
+    game_code = db.Column(db.String(5))
 
 app = Flask(__name__)
 app.secret_key = 'nVTnu_Y8tEZ9h1Z5sLKSMWXMgG_781x1jr4jqu2qWlYm9SOB0Ff3xXyXYS_Xqc5IJTfnkdz4tSETqodVrmJAy7cAf3JtcpjYT0Cl4IQ29tnA5TEpPg4DiQYrUTYWVFeSo_N_gnFbtZQzZKZWeSeuku5rGUtj_YA6XJKxcs4ZQrd5fy6gNvFBcMiVrPAhxI2thdi5Um3IrCHJITr7kacKUPbcn_Otb4hDNRltyVGtmOJnGNwM_vGApQF7VrjoO_y0yJFe6jepfYEOayeCKustjoLvqBh4nbELsit06r_340kfLQQ0yJKcGNUU10xmuwNn79NC9MSjG7GPfDsiRV1PkIMoPmnOI8YI5FDXK2ejTxSY6jVpCphvEYYUnShR7m9FfLwVFU37zNRLtcfCW5ef942OxYtdEpcm5iUKt2TkwIOyjRtJDEciqlSaM15ziNhPh3bXVmsPjPUiETxBar9DGlb0TVVeoUV54FWkuU2LREMPKHSP2Gm4tgTyu7VpLPdschdoTCavLGZqvHA6IZaJBrOAQUd0tEW7qAHWG6CIKh68vyjWm9kaqPOIp3BijGXTmn_FhUZ7uoQk_mgv96Fu2uNaMM9pazumL0tOZ5LdvfrihUCYTKmjEsiYXWS_3ksriGhPn_bqibnfdcPMiRvagpmSN9njfOCB8ijluD_hc3FSGTKn4A_xtcDLS9BGyXdp4ysSldllTZXa0IbKd4EBWLnLGhoXsWOP8oMxY_vBnmpANlcfadTdAPJzlup1T2rizzmV6sQvZYcRzKR8xtWqJ65NhvwxpiMJV80n4jE6fx15YEJaDk9eIQJcCcOtV25rgxqCJBYIMldn7uSr1aC0ntBrl_bJXMlyZOJ3XP6zRayR7f8KI89JgT3U2un0kdQi5oMn0EdXr1phYeJhVO7u3xMYHscNtuQ48wV7h2XsSrL8W3e0pFFde6VMQcgoIw42wu5HzoY6tgIIy8bIBecKztu966SxxRfCmTnIv_Ddksl4vial_lNaFDENlYUTYD8p'
@@ -83,21 +86,47 @@ def login_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('id') or not Users.query.get(session['id']).permissions and 0x1:
+        if not session.get('id') or not (Users.query.get(session['id']).permissions and 0x1):
             return abort(403, "admin_required")
         return f(*args, **kwargs)
     return decorated_function
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
-    game_ids = eval(Users.query.get(session['id']).game_ids)
+    if request.method == 'POST':
+        # create something in the db
+        if 'game' in request.form:
+            salt = str(datetime.now())
+            hash = base64.urlsafe_b64encode(hashlib.sha1((request.form['name'] + salt).encode('utf8')).digest()).decode('utf8')[:5]
+            db.session.add(Game(name=f"{request.form['name'][:100]}", dm_id=session['id'], game_code=f"{hash}"))
+            db.session.commit()
+            user = Users.query.get(session['id'])
+            game_ids = eval(user.game_ids)
+            game_ids.append(Game.query.filter_by(game_code=hash).first().id)
+            user.game_ids = str(game_ids)
+            db.session.commit()
+
+    user = Users.query.get(session['id'])
+    game_ids = eval(user.game_ids)
+    map_ids = eval(user.map_ids)
+    entity_ids = eval(user.entity_ids)
+    print(game_ids)
     games = [Game.query.get(i) for i in game_ids]
-    return render_template('index.html', games=games)
+    maps = [Map.query.get(i) for i in map_ids]
+    entities = [Entity.query.get(i) for i in entity_ids]
+    return render_template('index.html', games=games, maps=maps, entities=entities)
 
 @app.route('/room')
+@login_required
 def room():
-    return render_template('room.html')
+    games = eval(Users.query.get(session['id']).game_ids)
+    game = Game.query.filter_by(game_code=request.args.get('c')).first()
+    if game.id in games:
+        if game.dm_id == session['id']:
+            return render_template('dm.html')
+        return render_template('room.html')
+    return redirect(url_for('home'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -105,7 +134,7 @@ def login():
         if request.form['uname'] == Users.query.filter_by(username=request.form['uname']).first().username and check_password_hash(Users.query.filter_by(username=request.form['uname']).first().password, request.form['psw']):
             session['id'] = Users.query.filter_by(username=request.form['uname']).first().id
             print(f'User {request.form["uname"]} logged in')
-            return redirect(url_for('home'))
+            return redirect(url_for('home'), code=303)
     return render_template('login.html')
 
 @app.route('/logout')
@@ -118,8 +147,7 @@ def logout():
 def register():
     if request.method == 'POST':
         if not Users.query.filter_by(username=request.form['uname']).first():
-            db.session.add(Users(username=request.form['uname'], password=generate_password_hash(request.form['psw']), game_ids='[1]', permissions=0x1))
-            db.session.add(Game(name="Test Game", dm_id=0, game_code="XW95Y"))
+            db.session.add(Users(username=request.form['uname'], password=generate_password_hash(request.form['psw']), game_ids='[1]', map_ids='[]', entity_ids='[]', permissions=0x1))
             db.session.commit()
             print(f'Added user {request.form["uname"]} with password {request.form["psw"]}')
             return redirect(url_for('login'), code=303)
