@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, abort
 from flask_sqlalchemy import inspect
+from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 import logging
 from logging import Formatter, FileHandler
@@ -15,6 +16,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app=app)
+migrate = Migrate(app, db)
 
 db.create_all(app=app)
 
@@ -40,6 +42,8 @@ def admin_required(f):
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
+    if session.get('game'):
+        session.pop('game')
     if request.method == 'POST':
         # create something in the db
         if 'game' in request.form:
@@ -58,16 +62,36 @@ def home():
     entities = [Entity.query.get(i) for i in entity_ids]
     return render_template('index.html', user=user, games=games, maps=maps, entities=entities)
 
-@app.route('/room')
+@app.route('/room', methods=['GET', 'POST'])
 @login_required
 def room():
     games = eval(Users.query.get(session['id']).game_ids)
     game = Game.query.filter_by(game_code=request.args.get('c')).first()
-    if game.id in games:
-        if game.dm_id == session['id']:
-            return render_template('dm.html')
-        return render_template('room.html')
-    return redirect(url_for('home'))
+    if request.args.get('c'):
+        if game is not None and game.id in games:
+            session['game'] = game.id
+            return redirect(url_for('room'))
+    if not session.get('game'):
+        return redirect(url_for('home'))
+
+    game = Game.query.get(session['game'])
+    # if the request is post
+    if request.method == 'POST':
+        # if the user has authority to create stuff (dm)
+        if session['id'] == game.dm_id:
+            if 'entity' in request.form:
+                create_entity_instance(db, request.form, Users.query.get(session['id']), MapInstance.query.get(request.form['mapR']))
+            if 'map' in request.form:
+                create_map_instance(db, request.form, Users.query.get(session['id']), game)
+
+    if game.dm_id == session['id']:
+        print(f'Connected to the DM interface of {game.game_code}')
+        entities = [Entity.query.get(i) for i in eval(Users.query.get(session['id']).entity_ids)]
+        maps = [Map.query.get(i) for i in eval(Users.query.get(session['id']).map_ids)]
+        mapInstances = [MapInstance.query.get(i) for i in eval(Game.query.get(session['game']).map_instance_ids)]
+        return render_template('dm.html', entities=entities, maps=maps, mapInstances=mapInstances)
+    print(f'Connected to the player interface of {game.game_code}')
+    return render_template('room.html')
 
 @app.route('/edit')
 @login_required
@@ -138,4 +162,4 @@ if not app.debug:
     app.logger.info('errors')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=80, debug=True, use_reloader=True)

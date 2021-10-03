@@ -30,3 +30,19 @@ def create_map(db, form, user):
     map_ids.append(Map.query.filter_by(hash=hash).first().id)
     user.map_ids = str(map_ids)
     db.session.commit()
+    
+def create_map_instance(db, form, user, game):
+    hash = generate_hash(form['name'], 10)
+    db.session.add(MapInstance(name=f"{form['name'][:100]}", hash=hash, game_id=game.id, map_id=f"{form['mapSelect']}", entities=f"[]", initiative=f"[()]"))
+    map_instance_ids = eval(game.map_instance_ids)
+    map_instance_ids.append(MapInstance.query.filter_by(hash=hash).first().id)
+    game.map_instance_ids = str(map_instance_ids)
+    db.session.commit()
+    
+def create_entity_instance(db, form, user, map):
+    hash = generate_hash(form['name'], 10)
+    db.session.add(EntityInstance(name=f"{form['name'][:100]}", hash=hash, entity_id=f"{form['entitySelect']}", map_id=map.id, x_coord=0, y_coord=0))
+    entities = eval(map.entities)
+    entities.append(EntityInstance.query.filter_by(hash=hash).first().id)
+    map.entities = str(entities)
+    db.session.commit()
