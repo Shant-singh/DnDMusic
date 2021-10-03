@@ -1,11 +1,61 @@
 <!DOCTYPE html>
 <html>
     <head>
-
+        <link rel="stylesheet", href="{{ url_for('static', filename='dm.css') }}">
+        <script src="{{ url_for('static', filename='dm.js') }}"></script>
     </head>
     <body>
         <div class="mapInstances">
-            <button>Add new instance</button>
+            <button id="add_instance">Add new instance</button>
         </div>
+        
+        <div id="modal" class="modal">
+
+            <div class="modal-content">
+              <span class="close">&times;</span>
+              <select name="instanceType" onchange="selectChange()">
+                  <option value="0">Entity</option>
+                  <option value="1" selected>Map</option>
+              </select>
+              <div class="entity" style="padding-top: 10px">
+                <form method="post">
+                  <label for="name"><b>Name: </b></label>
+                  <input type="text" placeholder="The name of your entity" name="name" maxlength="100" required> <br />
+                  
+                  <label for="entitySelect"><b>Entity: </b></label>
+                  <select name="entitySelect">
+                      {% for entity in entities %}
+                        <option value="{{ entity.id }}">{{ entity.name }}</option>
+                      {% endfor %}
+                  </select> <br />
+                  
+                  <label for="mapR"><b>Map: </b></label>
+                  <select name="mapR">
+                      {% for map in mapInstances %}
+                        <option value="{{ map.id }}">{{ map.name }}</option>
+                      {% endfor %}
+                  </select> <br />
+
+                  <button type="submit" name="entity" style="margin-top: 5px"{% if mapInstances|length < 1 %} disabled {% endif %}>Add</button>
+                </form>
+              </div>
+              <div class="map" style="padding-top: 10px">
+                <form method="post">
+                  <label for="name"><b>Name: </b></label>
+                  <input type="text" placeholder="The name of your map" name="name" maxlength="100" required> <br />
+                  
+                  <label for="mapSelect"><b>Which map are you inheriting from? </b></label>
+                  <select name="mapSelect">
+                    {% for map in maps %}
+                      <option value="{{ map.id }}">{{ map.name }}</option>
+                    {% endfor %}
+                  </select> <br />
+      
+                  <button type="submit" name="map" style="margin-top: 5px">Add</button>
+                </form>
+              </div>
+            </div>
+      
+            </div>
     </body>
 </html>
