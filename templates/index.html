@@ -9,22 +9,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#157878">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="{{url_for('static', filename='index.js')}}"></script>
+    <link rel="stylesheet", href="{{url_for('static', filename='index.css')}}">
 
   </head>
   <body>
 
     <div class="content">
+      <p style="font-size: 32px;">Logged in as <b>{{ user.username }}</b></p>
       <div class="games">
         {% for game in games %}
           <div><a href="{{ url_for('room', c=game.game_code) }}">{{ game.name }}</a> ({{ game.game_code }})</div>
         {% endfor %}
+        <button id="create_game">Create game</button>
       </div>
+      <hr />
       <div class="entities">
         {% for entity in entities %}
-          <div><a href="{{ url_for('edit', c=entity.hash) }}">{{ entity.name }}</a> ({{ game.game_code }})</div>
+          <div><a href="{{ url_for('edit', c=entity.hash, t=e) }}">{{ entity.name }}</a> ({{ entity.hash }}) <img src="{{ entity.bigimageb64 }}" height=200><img height=200 src="{{ entity.iconb64 }}"></div>
         {% endfor %}
+        <button id="create_entity">Create entity</button>
+      </div>
+      <hr />
+      <div class="Maps">
+        {% for map in maps %}
+          <div><a href="{{ url_for('edit', c=map.hash, t=m) }}">{{ map.name }}</a> ({{ map.hash }}) <img src="{{ map.imageb64 }}" height=200></div>
+        {% endfor %}
+        <button id="create_map">Create map</button>
       </div>
     </div>
   
+    <div id="modal" class="modal">
+
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="game">
+          <form method="post">
+            <label for="name"><b>Name: </b></label>
+            <input type="text" placeholder="The name of your game" name="name" maxlength="100" required>
+            <button type="submit" name="game">Create</button>
+          </form>
+        </div>
+        <div class="entity">
+          <form method="post">
+            <label for="name"><b>Name: </b></label>
+            <input type="text" placeholder="The name of your entity" name="name" maxlength="100" required> <br />
+            
+            <label for="image"><b>Select an image to represent your entity: </b></label>
+            <input type="file" id="entityImage" name="entityImage" onchange="updateImage('entityImage')" accept="image/png, image/jpeg">
+            <input class="base64" id="entityImage" name="entityImageB" hidden>
+            <img class="image" src="" height="200"> <br />
+
+            <label for="image"><b>Select an icon to represent your entity: </b></label>
+            <input type="file" id="entityIcon" name="entityIcon" onchange="updateImage('entityIcon')" accept="image/png, image/jpeg">
+            <input class="base64" id="entityIcon" name="entityIconB" hidden>
+            <img class="icon" src="" height="200"> <br />
+
+            <label for="sizes"><b>Select the size of your entity:</b></label>
+
+            <select name="sizes" id="sizes">
+              <option value="0">Tiny (2.5)</option>
+              <option value="1">Small (5)</option>
+              <option value="2" selected>Medium (5)</option>
+              <option value="3">Large (10)</option>
+              <option value="4">Huge (15)</option>
+              <option value="5">Gargantuan (20+)</option>
+            </select> <br />
+            <button type="submit" name="entity">Create</button>
+          </form>
+        </div>
+        <div class="map">
+          <form method="post">
+            <label for="name"><b>Name: </b></label>
+            <input type="text" placeholder="The name of your map" name="name" maxlength="100" required> <br />
+            
+            <label for="image"><b>Select an image for your map: </b></label>
+            <input type="file" id="mapImage" name="mapImage" onchange="updateImage('mapImage')" accept="image/png, image/jpeg">
+            <input class="base64" id="mapImage" name="mapImageB" hidden>
+            <img class="image" src="" height="200"> <br />
+
+            <button type="submit" name="map">Create</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
 </body>
 </html>
