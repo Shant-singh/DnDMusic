@@ -3,11 +3,21 @@
     <head>
         <link rel="stylesheet", href="{{ url_for('static', filename='dm.css') }}">
         <script src="{{ url_for('static', filename='dm.js') }}"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+        <script src="{{ url_for('static', filename='interactions.js') }}"></script>
     </head>
     <body>
-        <div class="mapInstances">
-            <button id="add_instance">Add new instance</button>
-        </div>
+      <div class="mapInstances">
+        {% for map in mapInstances %}
+          <div class="mapInstance">
+            <img src="{{ maps[map.map_id-1].imageb64 }}" height=200>
+            <caption>{{ map.name }}</caption>
+          </div>
+        {% endfor %}
+      </div>
+      <hr>
+        
+      <button id="add_instance">Add new instance</button>
         
         <div id="modal" class="modal">
 
