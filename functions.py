@@ -7,6 +7,10 @@ from models import *
 def generate_hash(string, length=10):
     return base64.urlsafe_b64encode(hashlib.sha1((string + str(datetime.now())).encode('utf8')).digest()).decode('utf8')[:length]
 
+def seconds_since() -> float:
+    # returns number of seconds since 00:00 01/01/2021
+    return 0.0
+
 def create_game(db, form, user):
     hash = generate_hash(form['name'], 5)
     db.session.add(Game(name=f"{form['name'][:100]}", dm_id=user.id, game_code=f"{hash}", map_instance_ids='[]', player_ids='[]'))

@@ -37,7 +37,7 @@ class Map(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     hash = db.Column(db.String(10), unique=True)
-    imageb64 = db.Column(db.String(1000))
+    imageb64 = db.Column(db.String(200000))
     scale = db.Column(db.Float)
     offset = db.Column(db.Float)
     xsize = db.Column(db.Integer)
@@ -61,3 +61,13 @@ class Game(db.Model):
     map_instance_ids = db.Column(db.String(1000)) # list of ids of map instances in this game
     player_ids = db.Column(db.String(10)) # list of ids of players
     game_code = db.Column(db.String(5), unique=True)
+    waiting_screen = db.Column(db.String(20000))
+
+class ActiveGames(db.Model):
+    __tablename__ = 'ActiveGames'
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('Game.id'), nullable=False)
+    active_users = db.Column(db.String(10))
+    map_instance = db.Column(db.Integer, db.ForeignKey('MapInstance.id'), nullable=False) # 0 here means no map should be shown to players
+    time_created = db.Column(db.Float) # seconds since 00:00 1st Jan 2021
+    
