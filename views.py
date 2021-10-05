@@ -29,14 +29,6 @@ def admin_required(f):
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
-    # remove stale 'active_games'
-    for game in ActiveGames.query.all():
-        # if game is more than two days old
-        ActiveGames.query.filter_by(id = game.id).delete()
-        if seconds_since() - game.time_created > 60 * 60 * 24 * 2:
-            ActiveGames.query.filter_by(id = game.id).delete()
-        db.session.commit()
-
     user = Users.query.get(session['id'])
     if session.get('game'):
         session.pop('game')
@@ -69,13 +61,13 @@ def room():
 
             if ActiveGames.query.filter_by(game_id=game.id).first() is None:
                 # if the game is not yet active, activate it
-                db.session.add(ActiveGames(game_id=game.id, active_users=f'[user.id]', map_instance=0, time_created=seconds_since()))
+                db.session.add(ActiveGames(game_id=game.id, active_users=user.id, map_instance=0, time_created=seconds_since()))
             else:
                 # the game is already active, add this user
                 active = ActiveGames.query.filter_by(game_id=game.id).first()
                 a_au = eval(active.active_users)
                 a_au.append(user.id)
-                active.active_users = str(a_au)
+                active.active_users = a_au
             db.session.commit()
 
             return redirect(url_for('room'))
