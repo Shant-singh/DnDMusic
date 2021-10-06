@@ -67,7 +67,7 @@ class ActiveGames(db.Model):
     __tablename__ = 'ActiveGames'
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('Game.id'), nullable=False)
-    active_users = db.Column(db.String(10))
+    active_users = db.Column(db.String(200)) # [(user.id, user.sid)] user.sid is 20 characters
     map_instance = db.Column(db.Integer, db.ForeignKey('MapInstance.id'), nullable=False) # 0 here means no map should be shown to players
     time_created = db.Column(db.Float) # seconds since 00:00 1st Jan 2021
-    
+    delta = db.Column(db.String(1000)) # changes since last periodic refresh

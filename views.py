@@ -29,9 +29,18 @@ def admin_required(f):
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
+    # remove stale 'active_games'
+    for game in ActiveGames.query.all():
+        # if game is more than two days old
+        ActiveGames.query.filter_by(id = game.id).delete()
+        if seconds_since() - game.time_created > 60 * 60 * 24 * 2:
+            ActiveGames.query.filter_by(id = game.id).delete()
+        db.session.commit()
+
     user = Users.query.get(session['id'])
     if session.get('game'):
         session.pop('game')
+        session.pop('game_code')
     if request.method == 'POST':
         # create something in the db
         if 'game' in request.form:
@@ -53,15 +62,26 @@ def home():
 @login_required
 def room():
     user = Users.query.get(session['id'])
+    if request.method == 'POST':
+        print(request.form)
+        game_ids = eval(user.game_ids)
+        try:
+            game_ids.append(Game.query.filter_by(game_code=request.form['join']).first().id)
+            user.game_ids = str(game_ids)
+            db.session.commit()
+        except AttributeError:
+            flash("Not a valid game")
+        return redirect(url_for('home'))
     games = eval(user.game_ids)
     game = Game.query.filter_by(game_code=request.args.get('c')).first()
     if request.args.get('c'):
         if game is not None and game.id in games:
             session['game'] = game.id
+            session['game_code'] = game.game_code
 
             if ActiveGames.query.filter_by(game_id=game.id).first() is None:
                 # if the game is not yet active, activate it
-                db.session.add(ActiveGames(game_id=game.id, active_users=user.id, map_instance=0, time_created=seconds_since()))
+                db.session.add(ActiveGames(game_id=game.id, active_users=f'[]', map_instance=0, time_created=seconds_since()))
             else:
                 # the game is already active, add this user
                 active = ActiveGames.query.filter_by(game_id=game.id).first()

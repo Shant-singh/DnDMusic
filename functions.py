@@ -9,7 +9,7 @@ def generate_hash(string, length=10):
 
 def seconds_since() -> float:
     # returns number of seconds since 00:00 01/01/2021
-    return 0.0
+    return (datetime.now()-datetime(2021,1,1)).total_seconds()
 
 def create_game(db, form, user):
     hash = generate_hash(form['name'], 5)

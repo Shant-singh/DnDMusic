@@ -21,6 +21,11 @@
         {% for game in games %}
           <div><a href="{{ url_for('room', c=game.game_code) }}">{{ game.name }}</a> ({{ game.game_code }})</div>
         {% endfor %}
+        <form method="post" action="{{ url_for('room') }}">
+          <label for="join">Join game: </label>
+          <input type="text" name="join" placeholder="Game code..." required>
+          <button type="submit" name="submitButton">Join</button>
+        </form>
         <button id="create_game">Create game</button>
       </div>
       <hr />
