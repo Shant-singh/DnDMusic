@@ -34,10 +34,11 @@ def leaveRoom():
 # runs when a client requests to get new data from the db
 @socketio.on('refresh')
 def refreshData(data):
-    game = ActiveGames.query.filter_by(game_id=data['game_code']).first()
+    game_id = Game.query.filter_by(game_code=data['game_code']).first().id
+    game = ActiveGames.query.filter_by(game_id=game_id).first()
     mapI = MapInstance.query.get(game.map_instance)
     map = Map.query.get(mapI.map_id)
-    users = [Users.query.get(i).username for i in eval(game.active_users)]
+    users = [Users.query.get(i[0]).username for i in eval(game.active_users)]
     entities = [EntityInstance.query.get(i) for i in eval(mapI.entities)]
     entityData = []
     for entity in entities:
@@ -50,19 +51,17 @@ def refreshData(data):
             'x': entity.x_coord,
             'y': entity.y_coord
         })
-    socketio.send({
+    socketio.emit('refresh', {
         'online_users': users,
         'map': {
             'name': mapI.name,
             'initiative': mapI.initiative,
             'entities': entityData,
             'b64': map.imageb64,
-            'scale': map.scale,
-            'offset': map.offset,
-            'xsize': map.xsize,
-            'ysize': map.ysize
+            'xcount': map.xcount,
+            'ycount': map.ycount
         }
-    }, to=data['game_code'])
+    }, room=data['game_code'])
 
 # runs when a client wants to update data from the db
 @socketio.on('update')

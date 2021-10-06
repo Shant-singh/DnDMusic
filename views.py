@@ -62,8 +62,7 @@ def home():
 @login_required
 def room():
     user = Users.query.get(session['id'])
-    if request.method == 'POST':
-        print(request.form)
+    if request.method == 'POST' and request.form.get('join'):
         game_ids = eval(user.game_ids)
         try:
             game_ids.append(Game.query.filter_by(game_code=request.form['join']).first().id)
@@ -81,7 +80,7 @@ def room():
 
             if ActiveGames.query.filter_by(game_id=game.id).first() is None:
                 # if the game is not yet active, activate it
-                db.session.add(ActiveGames(game_id=game.id, active_users=f'[]', map_instance=0, time_created=seconds_since()))
+                db.session.add(ActiveGames(game_id=game.id, active_users=f'[]', map_instance=eval(game.map_instance_ids)[-1], time_created=seconds_since()))
             else:
                 # the game is already active, add this user
                 active = ActiveGames.query.filter_by(game_id=game.id).first()

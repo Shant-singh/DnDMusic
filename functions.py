@@ -29,7 +29,7 @@ def create_entity(db, form, user):
 
 def create_map(db, form, user):
     hash = generate_hash(form['name'], 10)
-    db.session.add(Map(name=f"{form['name'][:100]}", hash=f"{hash}", imageb64=f"{form['mapImageB']}"))
+    db.session.add(Map(name=f"{form['name'][:100]}", hash=f"{hash}", imageb64=f"{form['mapImageB']}", xcount=100, ycount=100))
     map_ids = eval(user.map_ids)
     map_ids.append(Map.query.filter_by(hash=hash).first().id)
     user.map_ids = str(map_ids)
