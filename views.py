@@ -108,7 +108,8 @@ def room():
         entities = [Entity.query.get(i) for i in eval(user.entity_ids)]
         maps = [Map.query.get(i) for i in eval(user.map_ids)]
         mapInstances = [MapInstance.query.get(i) for i in eval(Game.query.get(session['game']).map_instance_ids)]
-        return render_template('dm.html', entities=entities, maps=maps, mapInstances=mapInstances)
+        activeGame = ActiveGames.query.filter_by(game_id=game.id).first()
+        return render_template('dm.html', entities=entities, maps=maps, mapInstances=mapInstances, activeGame=activeGame)
 
     print(f'Connected to the player interface of {game.game_code}')
     return render_template('room.html')

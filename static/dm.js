@@ -12,7 +12,7 @@ function selectChange () {
     }
 }
 
-window.onload = function(){
+window.addEventListener("load", function() {
     // Get the modal
     var modal = document.getElementById("modal");
 
@@ -34,7 +34,6 @@ window.onload = function(){
     span.onclick = function() {
         modal.style.display = "none";
         modal_contents = modal.getElementsByClassName("modal-content")[0].getElementsByTagName("div");
-        console.log(modal_contents)
         for (var i=0; i<modal_contents.length; i++)
         {
             modal_contents[i].style.display = "none";
@@ -47,4 +46,4 @@ window.onload = function(){
             modal.style.display = "none";
         }
     }
-};
+}, false);

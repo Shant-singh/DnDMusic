@@ -4,6 +4,7 @@ from flask_socketio import join_room, leave_room, SocketIO
 from models import *
 from app import app
 from functions import *
+import time
 
 socketio = SocketIO(app)
 
@@ -44,6 +45,7 @@ def refreshData(data):
     for entity in entities:
         e = Entity.query.get(entity.entity_id)
         entityData.append({
+            'id': entity.id,
             'name': entity.name,
             'bigimageb64': e.bigimageb64,
             'iconb64': e.iconb64,
@@ -54,6 +56,7 @@ def refreshData(data):
     socketio.emit('refresh', {
         'online_users': users,
         'map': {
+            'id': mapI.id,
             'name': mapI.name,
             'initiative': mapI.initiative,
             'entities': entityData,
@@ -63,7 +66,19 @@ def refreshData(data):
         }
     }, room=data['game_code'])
 
-# runs when a client wants to update data from the db
+# runs to tell the client the updated game data (delta)
 @socketio.on('update')
 def updateData(data):
     pass
+
+@socketio.on('changeMap')
+def changeMap(data):
+    game = Game.query.filter_by(game_code=data['game_code']).first()
+    active_game = ActiveGames.query.filter_by(game_id=game.id).first()
+    user = Users.query.get(session['id'])
+    if game.dm_id == user.id:
+        if int(data['map_id']) in eval(game.map_instance_ids):
+            print(f'{active_game.map_instance} into {int(data["map_id"])}')
+            active_game.map_instance = int(data['map_id'])
+            db.session.commit()
+            refreshData(data) # get all clients to refresh their data (for the change in map)

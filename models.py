@@ -67,4 +67,3 @@ class ActiveGames(db.Model):
     active_users = db.Column(db.String(200)) # [(user.id, user.sid)] user.sid is 20 characters
     map_instance = db.Column(db.Integer, db.ForeignKey('MapInstance.id'), nullable=False)
     time_created = db.Column(db.Float) # seconds since 00:00 1st Jan 2021
-    delta = db.Column(db.String(1000)) # changes since last periodic refresh
